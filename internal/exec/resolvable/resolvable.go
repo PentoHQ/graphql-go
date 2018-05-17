@@ -282,7 +282,6 @@ func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.
 		in = in[1:]
 	}
 
-	// TODO: find a way to check for type
 	hasNilledFields := len(in) > 0 && in[0] == nilledType
 	if hasNilledFields {
 		in = in[1:]
