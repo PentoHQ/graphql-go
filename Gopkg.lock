@@ -2,12 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/PentoHQ/graphql-go"
+  packages = [".","errors","example/starwars","gqltesting","internal/common","internal/exec","internal/exec/packer","internal/exec/resolvable","internal/exec/selected","internal/query","internal/schema","internal/validation","introspection","log","relay","trace"]
+  revision = "e698b6abc17ead17ea89d3d22a4b2625299701e3"
+
+[[projects]]
   name = "github.com/opentracing/opentracing-go"
-  packages = [
-    ".",
-    "ext",
-    "log"
-  ]
+  packages = [".","ext","log"]
   revision = "1949ddbfd147afd4d964a9f00b24eb291e0e7c38"
   version = "v1.0.2"
 
@@ -20,6 +22,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f417062128566756a9360b1c13ada79bdeeb6bab1f53ee9147a3328d95c1653f"
+  inputs-digest = "da1635b5ea2b6133d325ce7cdb997a7a8c26aae5a31b15ae43a2dbb168c975e7"
   solver-name = "gps-cdcl"
   solver-version = 1

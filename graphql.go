@@ -6,17 +6,17 @@ import (
 
 	"encoding/json"
 
-	"github.com/graph-gophers/graphql-go/errors"
-	"github.com/graph-gophers/graphql-go/internal/common"
-	"github.com/graph-gophers/graphql-go/internal/exec"
-	"github.com/graph-gophers/graphql-go/internal/exec/resolvable"
-	"github.com/graph-gophers/graphql-go/internal/exec/selected"
-	"github.com/graph-gophers/graphql-go/internal/query"
-	"github.com/graph-gophers/graphql-go/internal/schema"
-	"github.com/graph-gophers/graphql-go/internal/validation"
-	"github.com/graph-gophers/graphql-go/introspection"
-	"github.com/graph-gophers/graphql-go/log"
-	"github.com/graph-gophers/graphql-go/trace"
+	"github.com/PentoHQ/graphql-go/errors"
+	"github.com/PentoHQ/graphql-go/internal/common"
+	"github.com/PentoHQ/graphql-go/internal/exec"
+	"github.com/PentoHQ/graphql-go/internal/exec/resolvable"
+	"github.com/PentoHQ/graphql-go/internal/exec/selected"
+	"github.com/PentoHQ/graphql-go/internal/query"
+	"github.com/PentoHQ/graphql-go/internal/schema"
+	"github.com/PentoHQ/graphql-go/internal/validation"
+	"github.com/PentoHQ/graphql-go/introspection"
+	"github.com/PentoHQ/graphql-go/log"
+	"github.com/PentoHQ/graphql-go/trace"
 )
 
 // ParseSchema parses a GraphQL schema and attaches the given root resolver. It returns an error if

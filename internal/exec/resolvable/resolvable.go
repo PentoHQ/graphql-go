@@ -6,9 +6,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/graph-gophers/graphql-go/internal/common"
-	"github.com/graph-gophers/graphql-go/internal/exec/packer"
-	"github.com/graph-gophers/graphql-go/internal/schema"
+	"github.com/PentoHQ/graphql-go/fields"
+	"github.com/PentoHQ/graphql-go/internal/common"
+	"github.com/PentoHQ/graphql-go/internal/exec/packer"
+	"github.com/PentoHQ/graphql-go/internal/schema"
 )
 
 type Schema struct {
