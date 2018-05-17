@@ -181,6 +181,9 @@ func execFieldSelection(ctx context.Context, r *Request, f *fieldToExec, path *p
 		if f.field.ArgsPacker != nil {
 			in = append(in, f.field.PackedArgs)
 		}
+		if f.field.HasFieldChecker {
+			in = append(in, reflect.ValueOf(&fields.ArgsChecker{Args: f.field.Args}))
+		}
 		callOut := f.resolver.Method(f.field.MethodIndex).Call(in)
 		result = callOut[0]
 		if f.field.HasError && !callOut[1].IsNil() {

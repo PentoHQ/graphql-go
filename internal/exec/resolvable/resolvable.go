@@ -31,13 +31,14 @@ type Object struct {
 
 type Field struct {
 	schema.Field
-	TypeName    string
-	MethodIndex int
-	HasContext  bool
-	HasError    bool
-	ArgsPacker  *packer.StructPacker
-	ValueExec   Resolvable
-	TraceLabel  string
+	TypeName        string
+	MethodIndex     int
+	HasContext      bool
+	HasFieldChecker bool
+	HasError        bool
+	ArgsPacker      *packer.StructPacker
+	ValueExec       Resolvable
+	TraceLabel      string
 }
 
 type TypeAssertion struct {
@@ -253,6 +254,7 @@ func (b *execBuilder) makeObjectExec(typeName string, fields schema.FieldList, p
 
 var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
+var checkerType = reflect.TypeOf((*fields.Checker)(nil)).Elem()
 
 func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.Method, methodIndex int, methodHasReceiver bool) (*Field, error) {
 	in := make([]reflect.Type, m.Type.NumIn())
@@ -281,6 +283,11 @@ func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.
 		in = in[1:]
 	}
 
+	hasFieldChecker := len(in) > 0 && in[0] == checkerType
+	if hasFieldChecker {
+		in = in[1:]
+	}
+
 	if len(in) > 0 {
 		return nil, fmt.Errorf("too many parameters")
 	}
@@ -297,13 +304,14 @@ func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.
 	}
 
 	fe := &Field{
-		Field:       *f,
-		TypeName:    typeName,
-		MethodIndex: methodIndex,
-		HasContext:  hasContext,
-		ArgsPacker:  argsPacker,
-		HasError:    hasError,
-		TraceLabel:  fmt.Sprintf("GraphQL field: %s.%s", typeName, f.Name),
+		Field:           *f,
+		TypeName:        typeName,
+		MethodIndex:     methodIndex,
+		HasContext:      hasContext,
+		HasFieldChecker: hasFieldChecker,
+		ArgsPacker:      argsPacker,
+		HasError:        hasError,
+		TraceLabel:      fmt.Sprintf("GraphQL field: %s.%s", typeName, f.Name),
 	}
 	if err := b.assignExec(&fe.ValueExec, f.Type, m.Type.Out(0)); err != nil {
 		return nil, err
