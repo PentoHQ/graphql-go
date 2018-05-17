@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/PentoHQ/graphql-go/fields"
 	"github.com/graph-gophers/graphql-go/internal/common"
 	"github.com/graph-gophers/graphql-go/internal/exec/packer"
 	"github.com/graph-gophers/graphql-go/internal/schema"
@@ -33,7 +34,7 @@ type Field struct {
 	TypeName        string
 	MethodIndex     int
 	HasContext      bool
-	HasNilledFields bool
+	HasFieldChecker bool
 	HasError        bool
 	ArgsPacker      *packer.StructPacker
 	ValueExec       Resolvable
@@ -253,7 +254,7 @@ func (b *execBuilder) makeObjectExec(typeName string, fields schema.FieldList, p
 
 var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
-var nilledType = reflect.TypeOf((*fields.Checker)(nil)).Elem()
+var checker = reflect.TypeOf((*fields.Checker)(nil)).Elem()
 
 func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.Method, methodIndex int, methodHasReceiver bool) (*Field, error) {
 	in := make([]reflect.Type, m.Type.NumIn())
@@ -282,8 +283,8 @@ func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.
 		in = in[1:]
 	}
 
-	hasNilledFields := len(in) > 0 && in[0] == nilledType
-	if hasNilledFields {
+	hasFieldChecker := len(in) > 0 && in[0] == checkerType
+	if hasFieldChecker {
 		in = in[1:]
 	}
 
@@ -307,7 +308,7 @@ func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.
 		TypeName:        typeName,
 		MethodIndex:     methodIndex,
 		HasContext:      hasContext,
-		HasNilledFields: hasNilledFields,
+		HasFieldChecker: hasFieldChecker,
 		ArgsPacker:      argsPacker,
 		HasError:        hasError,
 		TraceLabel:      fmt.Sprintf("GraphQL field: %s.%s", typeName, f.Name),

@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/PentoHQ/graphql-go/fields"
 	"github.com/graph-gophers/graphql-go/errors"
 	"github.com/graph-gophers/graphql-go/internal/common"
 	"github.com/graph-gophers/graphql-go/internal/exec/resolvable"
@@ -180,7 +181,7 @@ func execFieldSelection(ctx context.Context, r *Request, f *fieldToExec, path *p
 		if f.field.ArgsPacker != nil {
 			in = append(in, f.field.PackedArgs)
 		}
-		if f.field.HasNilledFields {
+		if f.field.HasFieldChecker {
 			in = append(in, reflect.ValueOf(&fields.ArgsChecker{Args: f.field.Args}))
 		}
 		callOut := f.resolver.Method(f.field.MethodIndex).Call(in)
