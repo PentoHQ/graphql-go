@@ -181,7 +181,7 @@ func execFieldSelection(ctx context.Context, r *Request, f *fieldToExec, path *p
 			in = append(in, f.field.PackedArgs)
 		}
 		if f.field.HasNilledFields {
-			in = append(in, reflect.ValueOf(&fields.FieldChecker{Args: f.field.Args}))
+			in = append(in, reflect.ValueOf(&fields.ArgsChecker{Args: f.field.Args}))
 		}
 		callOut := f.resolver.Method(f.field.MethodIndex).Call(in)
 		result = callOut[0]

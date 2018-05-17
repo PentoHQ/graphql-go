@@ -8,11 +8,11 @@ type Checker interface {
 	FieldProvided(string) bool
 }
 
-type FieldChecker struct {
+type ArgsChecker struct {
 	Args map[string]interface{}
 }
 
-func (n *FieldChecker) FieldProvided(field string) bool {
+func (n *ArgsChecker) FieldProvided(field string) bool {
 	path := strings.Split(field, ".")
 	return step(n.Args, path)
 }
