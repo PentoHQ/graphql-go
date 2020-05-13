@@ -49,7 +49,8 @@ type Handler struct {
 }
 
 type BatchedHandler struct {
-	Schema *graphql.Schema
+	Schema             *graphql.Schema
+	MaxParallelQueries int
 }
 
 type RequestData struct {
@@ -80,9 +81,15 @@ func (h *BatchedHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responsesChan := make(chan *BatchedResponse, len(queries))
+	semaphore := make(chan struct{}, h.MaxParallelQueries)
 	for i := range queries {
 		qr := queries[i]
 		go func(query *RequestData, responsesChan chan *BatchedResponse) {
+			if h.MaxParallelQueries > 0 {
+				semaphore <- struct{}{}
+				defer func() { <-semaphore }()
+			}
+
 			gqlResponse := h.Schema.Exec(r.Context(), query.Query, query.OperationName, query.Variables)
 			responsesChan <- &BatchedResponse{query.ID, *gqlResponse}
 		}(qr, responsesChan)
