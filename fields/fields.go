@@ -5,11 +5,16 @@ import (
 )
 
 type Checker interface {
+	ProvidedFields()  map[string]interface{}
 	FieldProvided(string) bool
 }
 
 type ArgsChecker struct {
 	Args map[string]interface{}
+}
+
+func (n *ArgsChecker) ProvidedFields() map[string]interface{} {
+	return n.Args
 }
 
 func (n *ArgsChecker) FieldProvided(field string) bool {
