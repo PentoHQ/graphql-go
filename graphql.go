@@ -7,17 +7,17 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/PentoHQ/graphql-go/errors"
-	"github.com/PentoHQ/graphql-go/internal/common"
-	"github.com/PentoHQ/graphql-go/internal/exec"
-	"github.com/PentoHQ/graphql-go/internal/exec/resolvable"
-	"github.com/PentoHQ/graphql-go/internal/exec/selected"
-	"github.com/PentoHQ/graphql-go/internal/query"
-	"github.com/PentoHQ/graphql-go/internal/schema"
-	"github.com/PentoHQ/graphql-go/internal/validation"
-	"github.com/PentoHQ/graphql-go/introspection"
-	"github.com/PentoHQ/graphql-go/log"
-	"github.com/PentoHQ/graphql-go/trace"
+	"github.com/graph-gophers/graphql-go/errors"
+	"github.com/graph-gophers/graphql-go/internal/common"
+	"github.com/graph-gophers/graphql-go/internal/exec"
+	"github.com/graph-gophers/graphql-go/internal/exec/resolvable"
+	"github.com/graph-gophers/graphql-go/internal/exec/selected"
+	"github.com/graph-gophers/graphql-go/internal/query"
+	"github.com/graph-gophers/graphql-go/internal/schema"
+	"github.com/graph-gophers/graphql-go/internal/validation"
+	"github.com/graph-gophers/graphql-go/introspection"
+	"github.com/graph-gophers/graphql-go/log"
+	"github.com/graph-gophers/graphql-go/trace"
 )
 
 // ParseSchema parses a GraphQL schema and attaches the given root resolver. It returns an error if
@@ -25,14 +25,21 @@ import (
 // resolver, then the schema can not be executed, but it may be inspected (e.g. with ToJSON).
 func ParseSchema(schemaString string, resolver interface{}, opts ...SchemaOpt) (*Schema, error) {
 	s := &Schema{
-		schema:           schema.New(),
-		maxParallelism:   10,
-		tracer:           trace.OpenTracingTracer{},
-		validationTracer: trace.NoopValidationTracer{},
-		logger:           &log.DefaultLogger{},
+		schema:         schema.New(),
+		maxParallelism: 10,
+		tracer:         trace.OpenTracingTracer{},
+		logger:         &log.DefaultLogger{},
 	}
 	for _, opt := range opts {
 		opt(s)
+	}
+
+	if s.validationTracer == nil {
+		if tracer, ok := s.tracer.(trace.ValidationTracerContext); ok {
+			s.validationTracer = tracer
+		} else {
+			s.validationTracer = &validationBridgingTracer{tracer: trace.NoopValidationTracer{}}
+		}
 	}
 
 	if err := s.schema.Parse(schemaString, s.useStringDescriptions); err != nil {
@@ -68,7 +75,7 @@ type Schema struct {
 	maxDepth                 int
 	maxParallelism           int
 	tracer                   trace.Tracer
-	validationTracer         trace.ValidationTracer
+	validationTracer         trace.ValidationTracerContext
 	logger                   log.Logger
 	useStringDescriptions    bool
 	disableIntrospection     bool
@@ -117,9 +124,10 @@ func Tracer(tracer trace.Tracer) SchemaOpt {
 }
 
 // ValidationTracer is used to trace validation errors. It defaults to trace.NoopValidationTracer.
+// Deprecated: context is needed to support tracing correctly. Use a Tracer which implements trace.ValidationTracerContext.
 func ValidationTracer(tracer trace.ValidationTracer) SchemaOpt {
 	return func(s *Schema) {
-		s.validationTracer = tracer
+		s.validationTracer = &validationBridgingTracer{tracer: tracer}
 	}
 }
 
@@ -186,7 +194,7 @@ func (s *Schema) exec(ctx context.Context, queryString string, operationName str
 		return &Response{Errors: []*errors.QueryError{qErr}}
 	}
 
-	validationFinish := s.validationTracer.TraceValidation()
+	validationFinish := s.validationTracer.TraceValidation(ctx)
 	errs := validation.Validate(s.schema, doc, variables, s.maxDepth)
 	validationFinish(errs)
 	if len(errs) != 0 {
@@ -270,6 +278,14 @@ func (s *Schema) validateSchema() error {
 		return err
 	}
 	return nil
+}
+
+type validationBridgingTracer struct {
+	tracer trace.ValidationTracer
+}
+
+func (t *validationBridgingTracer) TraceValidation(context.Context) trace.TraceValidationFinishFunc {
+	return t.tracer.TraceValidation()
 }
 
 func validateRootOp(s *schema.Schema, name string, mandatory bool) error {

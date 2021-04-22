@@ -1,4 +1,4 @@
-module github.com/PentoHQ/graphql-go
+module github.com/graph-gophers/graphql-go
 
 require github.com/opentracing/opentracing-go v1.1.0
 

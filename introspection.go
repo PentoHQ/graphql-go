@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/PentoHQ/graphql-go/internal/exec/resolvable"
-	"github.com/PentoHQ/graphql-go/introspection"
+	"github.com/graph-gophers/graphql-go/internal/exec/resolvable"
+	"github.com/graph-gophers/graphql-go/introspection"
 )
 
 // Inspect allows inspection of the given schema.

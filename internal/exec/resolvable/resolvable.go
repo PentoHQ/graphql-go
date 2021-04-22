@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/PentoHQ/graphql-go/fields"
-	"github.com/PentoHQ/graphql-go/internal/common"
-	"github.com/PentoHQ/graphql-go/internal/exec/packer"
-	"github.com/PentoHQ/graphql-go/internal/schema"
+	"github.com/graph-gophers/graphql-go/fields"
+	"github.com/graph-gophers/graphql-go/internal/common"
+	"github.com/graph-gophers/graphql-go/internal/exec/packer"
+	"github.com/graph-gophers/graphql-go/internal/schema"
 )
 
 type Schema struct {
@@ -35,7 +35,7 @@ type Field struct {
 	schema.Field
 	TypeName        string
 	MethodIndex     int
-	FieldIndex  []int
+	FieldIndex      []int
 	HasContext      bool
 	HasFieldChecker bool
 	HasError        bool
@@ -361,7 +361,7 @@ func (b *execBuilder) makeFieldExec(typeName string, f *schema.Field, m reflect.
 		Field:           *f,
 		TypeName:        typeName,
 		MethodIndex:     methodIndex,
-		FieldIndex:  fieldIndex,
+		FieldIndex:      fieldIndex,
 		HasContext:      hasContext,
 		HasFieldChecker: hasFieldChecker,
 		ArgsPacker:      argsPacker,

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/PentoHQ/graphql-go"
-	gqlerrors "github.com/PentoHQ/graphql-go/errors"
-	"github.com/PentoHQ/graphql-go/example/starwars"
-	"github.com/PentoHQ/graphql-go/gqltesting"
+	"github.com/graph-gophers/graphql-go"
+	gqlerrors "github.com/graph-gophers/graphql-go/errors"
+	"github.com/graph-gophers/graphql-go/example/starwars"
+	"github.com/graph-gophers/graphql-go/gqltesting"
 )
 
 type helloWorldResolver1 struct{}
@@ -1836,6 +1836,30 @@ func TestTypeName(t *testing.T) {
 				}
 			`,
 		},
+
+		{
+			Schema: starwarsSchema,
+			Query: `
+				{
+					hero {
+						__typename
+						name
+						... on Character {
+							...Droid
+							name
+							__typename
+						}
+					}
+				}
+				
+				fragment Droid on Droid {
+					name
+					__typename
+				}			  
+			`,
+			RawResponse:    true,
+			ExpectedResult: `{"hero":{"__typename":"Droid","name":"R2-D2"}}`,
+		},
 	})
 }
 
@@ -2614,6 +2638,44 @@ func TestIntrospectionDisableIntrospection(t *testing.T) {
 				}
 			`,
 		},
+
+		{
+			Schema: starwarsSchemaNoIntrospection,
+			Query: `
+				{
+					search(text: "an") {
+						__typename
+						... on Human {
+							name
+						}
+						... on Droid {
+							name
+						}
+						... on Starship {
+							name
+						}
+					}
+				}
+			`,
+			ExpectedResult: `
+				{
+					"search": [
+						{
+							"__typename": "Human",
+							"name": "Han Solo"
+						},
+						{
+							"__typename": "Human",
+							"name": "Leia Organa"
+						},
+						{
+							"__typename": "Starship",
+							"name": "TIE Advanced x1"
+						}
+					]
+				}
+			`,
+		},
 	})
 }
 
@@ -2997,7 +3059,7 @@ func TestInput(t *testing.T) {
 	})
 }
 
-type inputArgumentsHello struct {}
+type inputArgumentsHello struct{}
 
 type inputArgumentsScalarMismatch1 struct{}
 
@@ -3752,6 +3814,188 @@ func TestPointerReturnForNonNull(t *testing.T) {
 					Path:    []interface{}{"pointerReturn", "value"},
 				},
 			},
+		},
+	})
+}
+
+type nullableInput struct {
+	String graphql.NullString
+	Int    graphql.NullInt
+	Bool   graphql.NullBool
+	Time   graphql.NullTime
+	Float  graphql.NullFloat
+}
+
+type nullableResult struct {
+	String string
+	Int    string
+	Bool   string
+	Time   string
+	Float  string
+}
+
+type nullableResolver struct {
+}
+
+func (r *nullableResolver) TestNullables(args struct {
+	Input *nullableInput
+}) nullableResult {
+	var res nullableResult
+	if args.Input.String.Set {
+		if args.Input.String.Value == nil {
+			res.String = "<nil>"
+		} else {
+			res.String = *args.Input.String.Value
+		}
+	}
+
+	if args.Input.Int.Set {
+		if args.Input.Int.Value == nil {
+			res.Int = "<nil>"
+		} else {
+			res.Int = fmt.Sprintf("%d", *args.Input.Int.Value)
+		}
+	}
+
+	if args.Input.Float.Set {
+		if args.Input.Float.Value == nil {
+			res.Float = "<nil>"
+		} else {
+			res.Float = fmt.Sprintf("%.2f", *args.Input.Float.Value)
+		}
+	}
+
+	if args.Input.Bool.Set {
+		if args.Input.Bool.Value == nil {
+			res.Bool = "<nil>"
+		} else {
+			res.Bool = fmt.Sprintf("%t", *args.Input.Bool.Value)
+		}
+	}
+
+	if args.Input.Time.Set {
+		if args.Input.Time.Value == nil {
+			res.Time = "<nil>"
+		} else {
+			res.Time = args.Input.Time.Value.Format(time.RFC3339)
+		}
+	}
+
+	return res
+}
+
+func TestNullable(t *testing.T) {
+	schema := `
+	scalar Time
+
+	input MyInput {
+		string: String
+		int: Int
+		float: Float
+		bool: Boolean
+		time: Time
+	}
+
+	type Result {
+		string: String!
+		int: String!
+		float: String!
+		bool: String!
+		time: String!
+	}
+
+	type Query {
+		testNullables(input: MyInput): Result!
+	}
+	`
+
+	gqltesting.RunTests(t, []*gqltesting.Test{
+		{
+			Schema: graphql.MustParseSchema(schema, &nullableResolver{}, graphql.UseFieldResolvers()),
+			Query: `
+				query {
+					testNullables(input: {
+						string: "test"
+						int: 1234
+						float: 42.42
+						bool: true
+						time: "2021-01-02T15:04:05Z"
+					}) {
+						string
+						int
+						float
+						bool
+						time
+					}
+				}
+			`,
+			ExpectedResult: `
+				{
+					"testNullables": {
+						"string": "test",
+						"int": "1234",
+						"float": "42.42",
+						"bool": "true",
+						"time": "2021-01-02T15:04:05Z"
+					}
+				}
+			`,
+		},
+		{
+			Schema: graphql.MustParseSchema(schema, &nullableResolver{}, graphql.UseFieldResolvers()),
+			Query: `
+				query {
+					testNullables(input: {
+						string: null
+						int: null
+						float: null
+						bool: null
+						time: null
+					}) {
+						string
+						int
+						float
+						bool
+						time
+					}
+				}
+			`,
+			ExpectedResult: `
+				{
+					"testNullables": {
+						"string": "<nil>",
+						"int": "<nil>",
+						"float": "<nil>",
+						"bool": "<nil>",
+						"time": "<nil>"
+					}
+				}
+			`,
+		},
+		{
+			Schema: graphql.MustParseSchema(schema, &nullableResolver{}, graphql.UseFieldResolvers()),
+			Query: `
+				query {
+					testNullables(input: {}) {
+						string
+						int
+						float
+						bool
+						time
+					}
+				}
+			`,
+			ExpectedResult: `
+				{
+					"testNullables": {
+						"string": "",
+						"int": "",
+						"float": "",
+						"bool": "",
+						"time": ""
+					}
+				}
+			`,
 		},
 	})
 }

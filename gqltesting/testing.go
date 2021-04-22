@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"testing"
 
-	graphql "github.com/PentoHQ/graphql-go"
-	"github.com/PentoHQ/graphql-go/errors"
+	graphql "github.com/graph-gophers/graphql-go"
+	"github.com/graph-gophers/graphql-go/errors"
 )
 
 // Test is a GraphQL test case to be used with RunTest(s).
@@ -23,6 +23,7 @@ type Test struct {
 	Variables      map[string]interface{}
 	ExpectedResult string
 	ExpectedErrors []*errors.QueryError
+	RawResponse    bool
 }
 
 // RunTests runs the given GraphQL test cases as subtests.
@@ -57,10 +58,22 @@ func RunTest(t *testing.T, test *Test) {
 	}
 
 	// Verify JSON to avoid red herring errors.
-	got, err := formatJSON(result.Data)
-	if err != nil {
-		t.Fatalf("got: invalid JSON: %s", err)
+	var got []byte
+
+	if test.RawResponse {
+		value, err := result.Data.MarshalJSON()
+		if err != nil {
+			t.Fatalf("got: unable to marshal JSON response: %s", err)
+		}
+		got = value
+	} else {
+		value, err := formatJSON(result.Data)
+		if err != nil {
+			t.Fatalf("got: invalid JSON: %s", err)
+		}
+		got = value
 	}
+
 	want, err := formatJSON([]byte(test.ExpectedResult))
 	if err != nil {
 		t.Fatalf("want: invalid JSON: %s", err)

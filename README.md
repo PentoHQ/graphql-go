@@ -1,4 +1,4 @@
-# graphql-go [![Sourcegraph](https://sourcegraph.com/github.com/PentoHQ/graphql-go/-/badge.svg)](https://sourcegraph.com/github.com/PentoHQ/graphql-go?badge) [![Build Status](https://semaphoreci.com/api/v1/graph-gophers/graphql-go/branches/master/badge.svg)](https://semaphoreci.com/graph-gophers/graphql-go) [![GoDoc](https://godoc.org/github.com/PentoHQ/graphql-go?status.svg)](https://godoc.org/github.com/PentoHQ/graphql-go)
+# graphql-go [![Sourcegraph](https://sourcegraph.com/github.com/graph-gophers/graphql-go/-/badge.svg)](https://sourcegraph.com/github.com/graph-gophers/graphql-go?badge) [![Build Status](https://semaphoreci.com/api/v1/graph-gophers/graphql-go/branches/master/badge.svg)](https://semaphoreci.com/graph-gophers/graphql-go) [![GoDoc](https://godoc.org/github.com/graph-gophers/graphql-go?status.svg)](https://godoc.org/github.com/graph-gophers/graphql-go)
 
 <p align="center"><img src="docs/img/logo.png" width="300"></p>
 
@@ -17,11 +17,11 @@ safe for production use.
 - handles panics in resolvers
 - parallel execution of resolvers
 - subscriptions
-   - [sample WS transport](https://github.com/PentoHQ/graphql-transport-ws)
+   - [sample WS transport](https://github.com/graph-gophers/graphql-transport-ws)
 
 ## Roadmap
 
-We're trying out the GitHub Project feature to manage `graphql-go`'s [development roadmap](https://github.com/PentoHQ/graphql-go/projects/1).
+We're trying out the GitHub Project feature to manage `graphql-go`'s [development roadmap](https://github.com/graph-gophers/graphql-go/projects/1).
 Feedback is welcome and appreciated.
 
 ## (Some) Documentation
@@ -35,8 +35,8 @@ import (
         "log"
         "net/http"
 
-        graphql "github.com/PentoHQ/graphql-go"
-        "github.com/PentoHQ/graphql-go/relay"
+        graphql "github.com/graph-gophers/graphql-go"
+        "github.com/graph-gophers/graphql-go/relay"
 )
 
 type query struct{}
@@ -162,6 +162,6 @@ Which could produce a GraphQL error such as:
 }
 ```
 
-### [Examples](https://github.com/PentoHQ/graphql-go/wiki/Examples)
+### [Examples](https://github.com/graph-gophers/graphql-go/wiki/Examples)
 
-### [Companies that use this library](https://github.com/PentoHQ/graphql-go/wiki/Users)
+### [Companies that use this library](https://github.com/graph-gophers/graphql-go/wiki/Users)

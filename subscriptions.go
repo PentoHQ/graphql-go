@@ -5,14 +5,14 @@ import (
 	"errors"
 	"reflect"
 
-	qerrors "github.com/PentoHQ/graphql-go/errors"
-	"github.com/PentoHQ/graphql-go/internal/common"
-	"github.com/PentoHQ/graphql-go/internal/exec"
-	"github.com/PentoHQ/graphql-go/internal/exec/resolvable"
-	"github.com/PentoHQ/graphql-go/internal/exec/selected"
-	"github.com/PentoHQ/graphql-go/internal/query"
-	"github.com/PentoHQ/graphql-go/internal/validation"
-	"github.com/PentoHQ/graphql-go/introspection"
+	qerrors "github.com/graph-gophers/graphql-go/errors"
+	"github.com/graph-gophers/graphql-go/internal/common"
+	"github.com/graph-gophers/graphql-go/internal/exec"
+	"github.com/graph-gophers/graphql-go/internal/exec/resolvable"
+	"github.com/graph-gophers/graphql-go/internal/exec/selected"
+	"github.com/graph-gophers/graphql-go/internal/query"
+	"github.com/graph-gophers/graphql-go/internal/validation"
+	"github.com/graph-gophers/graphql-go/introspection"
 )
 
 // Subscribe returns a response channel for the given subscription with the schema's
@@ -36,7 +36,7 @@ func (s *Schema) subscribe(ctx context.Context, queryString string, operationNam
 		return sendAndReturnClosed(&Response{Errors: []*qerrors.QueryError{qErr}})
 	}
 
-	validationFinish := s.validationTracer.TraceValidation()
+	validationFinish := s.validationTracer.TraceValidation(ctx)
 	errs := validation.Validate(s.schema, doc, variables, s.maxDepth)
 	validationFinish(errs)
 	if len(errs) != 0 {

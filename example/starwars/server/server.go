@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/PentoHQ/graphql-go"
-	"github.com/PentoHQ/graphql-go/example/starwars"
-	"github.com/PentoHQ/graphql-go/relay"
+	"github.com/graph-gophers/graphql-go"
+	"github.com/graph-gophers/graphql-go/example/starwars"
+	"github.com/graph-gophers/graphql-go/relay"
 )
 
 var schema *graphql.Schema

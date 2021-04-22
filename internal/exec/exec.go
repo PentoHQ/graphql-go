@@ -9,15 +9,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/PentoHQ/graphql-go/errors"
-	"github.com/PentoHQ/graphql-go/fields"
-	"github.com/PentoHQ/graphql-go/internal/common"
-	"github.com/PentoHQ/graphql-go/internal/exec/resolvable"
-	"github.com/PentoHQ/graphql-go/internal/exec/selected"
-	"github.com/PentoHQ/graphql-go/internal/query"
-	"github.com/PentoHQ/graphql-go/internal/schema"
-	"github.com/PentoHQ/graphql-go/log"
-	"github.com/PentoHQ/graphql-go/trace"
+	"github.com/graph-gophers/graphql-go/errors"
+	"github.com/graph-gophers/graphql-go/fields"
+	"github.com/graph-gophers/graphql-go/internal/common"
+	"github.com/graph-gophers/graphql-go/internal/exec/resolvable"
+	"github.com/graph-gophers/graphql-go/internal/exec/selected"
+	"github.com/graph-gophers/graphql-go/internal/query"
+	"github.com/graph-gophers/graphql-go/internal/schema"
+	"github.com/graph-gophers/graphql-go/log"
+	"github.com/graph-gophers/graphql-go/trace"
 )
 
 type Request struct {
@@ -130,12 +130,17 @@ func collectFieldsToResolve(sels []selected.Selection, s *resolvable.Schema, res
 			field.sels = append(field.sels, sel.Sels...)
 
 		case *selected.TypenameField:
-			sf := &selected.SchemaField{
-				Field:       s.Meta.FieldTypename,
-				Alias:       sel.Alias,
-				FixedResult: reflect.ValueOf(typeOf(sel, resolver)),
+			_, ok := fieldByAlias[sel.Alias]
+			if !ok {
+				sf := &selected.SchemaField{
+					Field:       s.Meta.FieldTypename,
+					Alias:       sel.Alias,
+					FixedResult: reflect.ValueOf(typeOf(sel, resolver)),
+				}
+				field := &fieldToExec{field: sf, resolver: resolver}
+				*fields = append(*fields, field)
+				fieldByAlias[sel.Alias] = field
 			}
-			*fields = append(*fields, &fieldToExec{field: sf, resolver: resolver})
 
 		case *selected.TypeAssertion:
 			out := resolver.Method(sel.MethodIndex).Call(nil)
@@ -204,9 +209,9 @@ func execFieldSelection(ctx context.Context, r *Request, s *resolvable.Schema, f
 				in = append(in, f.field.PackedArgs)
 			}
 			if f.field.HasFieldChecker {
-			in = append(in, reflect.ValueOf(&fields.ArgsChecker{Args: f.field.Args}))
-		}
-		callOut := res.Method(f.field.MethodIndex).Call(in)
+				in = append(in, reflect.ValueOf(&fields.ArgsChecker{Args: f.field.Args}))
+			}
+			callOut := res.Method(f.field.MethodIndex).Call(in)
 			result = callOut[0]
 			if f.field.HasError && !callOut[1].IsNil() {
 				resolverErr := callOut[1].Interface().(error)

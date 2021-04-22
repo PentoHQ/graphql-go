@@ -5,7 +5,7 @@ import (
 	"strings"
 	"text/scanner"
 
-	"github.com/PentoHQ/graphql-go/errors"
+	"github.com/graph-gophers/graphql-go/errors"
 )
 
 type Literal interface {
