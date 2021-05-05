@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"sort"
 	"strconv"
 	"testing"
 
-	graphql "github.com/PentoHQ/graphql-go"
-	"github.com/PentoHQ/graphql-go/errors"
+	graphql "github.com/graph-gophers/graphql-go"
+	"github.com/graph-gophers/graphql-go/errors"
 )
 
 // Test is a GraphQL test case to be used with RunTest(s).
@@ -21,6 +23,7 @@ type Test struct {
 	Variables      map[string]interface{}
 	ExpectedResult string
 	ExpectedErrors []*errors.QueryError
+	RawResponse    bool
 }
 
 // RunTests runs the given GraphQL test cases as subtests.
@@ -43,17 +46,38 @@ func RunTest(t *testing.T, test *Test) {
 		test.Context = context.Background()
 	}
 	result := test.Schema.Exec(test.Context, test.Query, test.OperationName, test.Variables)
-	// Verify JSON to avoid red herring errors.
-	got, err := formatJSON(result.Data)
-	if err != nil {
-		t.Fatalf("got: invalid JSON: %s", err)
+
+	checkErrors(t, test.ExpectedErrors, result.Errors)
+
+	if test.ExpectedResult == "" {
+		if result.Data != nil {
+			t.Fatalf("got: %s", result.Data)
+			t.Fatalf("want: null")
+		}
+		return
 	}
+
+	// Verify JSON to avoid red herring errors.
+	var got []byte
+
+	if test.RawResponse {
+		value, err := result.Data.MarshalJSON()
+		if err != nil {
+			t.Fatalf("got: unable to marshal JSON response: %s", err)
+		}
+		got = value
+	} else {
+		value, err := formatJSON(result.Data)
+		if err != nil {
+			t.Fatalf("got: invalid JSON: %s", err)
+		}
+		got = value
+	}
+
 	want, err := formatJSON([]byte(test.ExpectedResult))
 	if err != nil {
 		t.Fatalf("want: invalid JSON: %s", err)
 	}
-
-	checkErrors(t, test.ExpectedErrors, result.Errors)
 
 	if !bytes.Equal(got, want) {
 		t.Logf("got:  %s", got)
@@ -74,27 +98,20 @@ func formatJSON(data []byte) ([]byte, error) {
 	return formatted, nil
 }
 
-func checkErrors(t *testing.T, expected, actual []*errors.QueryError) {
-	expectedCount, actualCount := len(expected), len(actual)
+func checkErrors(t *testing.T, want, got []*errors.QueryError) {
+	sortErrors(want)
+	sortErrors(got)
 
-	if expectedCount != actualCount {
-		t.Fatalf("unexpected number of errors: got %d, want %d", actualCount, expectedCount)
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("unexpected error: got %+v, want %+v", got, want)
 	}
+}
 
-	if expectedCount > 0 {
-		for i, want := range expected {
-			got := actual[i]
-
-			if !reflect.DeepEqual(got, want) {
-				t.Fatalf("unexpected error: got %+v, want %+v", got, want)
-			}
-		}
-
-		// Return because we're done checking.
+func sortErrors(errors []*errors.QueryError) {
+	if len(errors) <= 1 {
 		return
 	}
-
-	for _, err := range actual {
-		t.Errorf("unexpected error: '%s'", err)
-	}
+	sort.Slice(errors, func(i, j int) bool {
+		return fmt.Sprintf("%s", errors[i].Path) < fmt.Sprintf("%s", errors[j].Path)
+	})
 }

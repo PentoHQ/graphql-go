@@ -5,14 +5,14 @@ import (
 	"net/http"
 
 	"github.com/graph-gophers/graphql-go"
-	"github.com/graph-gophers/graphql-go/example/starwars"
+	"github.com/graph-gophers/graphql-go/example/customerrors"
 	"github.com/graph-gophers/graphql-go/relay"
 )
 
 var schema *graphql.Schema
 
 func init() {
-	schema = graphql.MustParseSchema(starwars.Schema, &starwars.Resolver{})
+	schema = graphql.MustParseSchema(customerrors.Schema, &customerrors.Resolver{})
 }
 
 func main() {
